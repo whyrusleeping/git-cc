@@ -43,13 +43,26 @@ def main(stash=False, dry_run=False, lshistory=False, load=None):
         print(history)
     else:
         cs = parseHistory(history)
-        cs.sort(key = lambda x: x.date)
+        '''cs.sort(key = lambda x: x.date)'''
+        cs.sort(cmp= changeSetComp)
         cs = mergeHistory(cs)
         if dry_run:
             return printGroups(cs)
         if not len(cs):
             return
         doStash(lambda: doCommit(cs), stash)
+
+def changeSetComp(csl, csr):
+    if(csl.date < csr.date):
+        return -1
+    elif(csl.date > csr.date):
+        return 1
+    elif(csl.version < csr.version):
+        return -1
+    elif(csl.version > csr.version):
+        return 1
+    else:
+        return 0
 
 def checkPristine():
     if(len(git_exec(['ls-files', '--modified']).splitlines()) > 0):
@@ -124,6 +137,11 @@ def parseHistory(lines):
             comment = DELIM.join(split[5:])
             last = split
     add(last, comment)
+
+    print("Changesets")
+    for cset in changesets:
+        print(cset.version)
+        
     return changesets
 
 def mergeHistory(changesets):
@@ -231,6 +249,7 @@ class Uncataloged(Changeset):
     def add(self, files):
         dir = path(cc_file(self.file, self.version))
         diff = cc_exec(['diff', '-diff_format', '-pred', dir], errors=False)
+        print(files)
         def getFile(line):
             return join(self.file, line[2:max(line.find('  '), line.find(FS + ' '))])
         for line in diff.split('\n'):
