@@ -55,7 +55,11 @@ class Cache(object):
             f.write('\n')
         finally:
             f.close()
-        git_exec(['add', self.file])
+        try:
+            git_exec(['add', self.file])
+        except:
+            debug('> cannot add ' + self.file + ', is it in .gitignore?')
+            raise
     def list(self):
         values = []
         for file, version in self.map.items():
