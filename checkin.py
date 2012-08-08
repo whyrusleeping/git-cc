@@ -124,4 +124,4 @@ class Transaction(ITransaction):
             if not IGNORE_CONFLICTS:
                 raise Exception('File has been modified: %s. Try rebasing.' % file)
             else:
-                print ('WARNING: Detected possible confilct with',file,'...ignoring...')
+                print ('WARNING: Detected possible conflict with',file,'...ignoring...')
