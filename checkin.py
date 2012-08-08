@@ -81,13 +81,13 @@ def checkout(stats, comment, initial):
     for stat in stats:
         try:
             stat.stage(transaction)
+            for stat in stats:
+                stat.commit(transaction)
+            transaction.commit(comment);
         except:
+            print('rolling back transaction')
             transaction.rollback()
-            raise
-
-    for stat in stats:
-         stat.commit(transaction)
-    transaction.commit(comment);
+            raise    
 
 class ITransaction(object):
     def __init__(self, comment):
@@ -124,4 +124,4 @@ class Transaction(ITransaction):
             if not IGNORE_CONFLICTS:
                 raise Exception('File has been modified: %s. Try rebasing.' % file)
             else:
-                print ('WARNING: Detected possible confilct with',file,'...ignoring...')
+                print ('WARNING: Detected possible conflict with',file,'...ignoring...')
