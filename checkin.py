@@ -36,6 +36,7 @@ def main(force=False, no_deliver=False, initial=False, all=False):
     for line in log.split('\x00'):
         id, comment = line.split('\x01')
         statuses = getStatuses(id, initial)
+        print("Statuses" + statuses)
         checkout(statuses, comment.strip(), initial)
         tag(CI_TAG, id)
     if not no_deliver:
