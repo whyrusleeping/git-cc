@@ -243,7 +243,6 @@ class Uncataloged(Changeset):
     def add(self, files):
         dir = path(cc_file(self.file, self.version))
         diff = cc_exec(['diff', '-diff_format', '-pred', dir], errors=False)
-        print(files)
         def getFile(line):
             return join(self.file, line[2:max(line.find('  '), line.find(FS + ' '))])
         for line in diff.split('\n'):
