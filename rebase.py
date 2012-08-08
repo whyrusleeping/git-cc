@@ -43,7 +43,6 @@ def main(stash=False, dry_run=False, lshistory=False, load=None):
         print(history)
     else:
         cs = parseHistory(history)
-        '''cs.sort(key = lambda x: x.date)'''
         cs.sort(cmp= changeSetComp)
         cs = mergeHistory(cs)
         if dry_run:
@@ -137,11 +136,6 @@ def parseHistory(lines):
             comment = DELIM.join(split[5:])
             last = split
     add(last, comment)
-
-    print("Changesets")
-    for cset in changesets:
-        print(cset.version)
-        
     return changesets
 
 def mergeHistory(changesets):
