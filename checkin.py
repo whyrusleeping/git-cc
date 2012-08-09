@@ -72,14 +72,6 @@ def getStatuses(id, initial):
             continue
         print('char=' + char + 'filename=' + args[0])
         print(args)
-        #if args.count > 1:
-        #    print(args)
-        #    fail('what are these other arguments')
-        #if char == 'A':
-        #    # If the file already exists in clearcase then it should be a modify operation.
-        #    if exists(args[0]):
-        #        print(args[0] + ' already exists, changing from Add to Modify operation')
-        #        char = 'M'
         type = types[char](args)
         type.id = id
         list.append(type)
