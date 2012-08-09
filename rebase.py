@@ -2,6 +2,7 @@
 
 from os.path import join, dirname, exists, isdir
 import os, stat
+import time
 from common import *
 from datetime import datetime, timedelta
 from users import users, mailSuffix
@@ -64,8 +65,21 @@ def changeSetComp(csl, csr):
         return 0
 
 def checkPristine():
-    if(len(git_exec(['ls-files', '--modified']).splitlines()) > 0):
+    if not isPristine():
         fail('There are uncommitted files in your git directory')
+
+def isPristine():
+    files = git_exec(['ls-files', '--modified'])
+    if(len(files.splitlines()) > 0):
+        return False
+    else:
+        return True
+
+def printStatus():
+    files = git_exec(['status'])
+    print('Status:\n' + files)
+    files = git_exec(['ls-files', '--modified'])
+    print('Unstaged files:\n' + files)
 
 def doCommit(cs):
     branch = getCurrentBranch()
@@ -77,7 +91,7 @@ def doCommit(cs):
             git_exec(['rebase', CC_TAG, branch])
             tag(CI_TAG, CC_TAG)
         except:
-            git_exec(['checkout', branch])
+            #git_exec(['checkout', branch])
             raise
     else:
         '''git_exec(['branch', '-f', CC_TAG])'''
@@ -203,7 +217,10 @@ class Group:
         env['GIT_AUTHOR_EMAIL'] = env['GIT_COMMITTER_EMAIL'] = str(getUserEmail(user))
         comment = self.comment if self.comment.strip() != "" else "<empty message>"
         try:
-            git_exec(['commit', '-m', comment.encode(ENCODING)], env=env)
+            if isPristine():
+                git_exec(['commit', '-m', comment.encode(ENCODING)], env=env)
+            else:
+                raise Exception('There are uncommitted files, something went wrong.')
         except Exception as e:
             if search('nothing( added)? to commit', e.args[0]) == None:
                 raise
@@ -240,6 +257,18 @@ class Changeset(object):
         else:
             os.chmod(toFile, os.stat(toFile).st_mode | stat.S_IWRITE)
         git_exec(['add', '-f', file], errors=False)
+        
+        maxRetries = 10
+        retries = maxRetries
+        while not isPristine() and retries > 0:
+            printStatus()
+            time.sleep(1)
+            #raw_input("Press Enter to continue...")
+            git_exec(['add', '-f', file], errors=False)
+            retries -= 1
+
+        if retries == 0:
+            raise Exception('Cannot add ' + file + ' after ' + maxRetries)
 
 class Uncataloged(Changeset):
     def add(self, files):
