@@ -71,6 +71,16 @@ def getStatuses(id, initial):
             args = [split.pop(0)]
         if args[0] == cache.FILE:
             continue
+        print('char=' + char + 'filename=' + args[0])
+        print(args)
+        #if args.count > 1:
+        #    print(args)
+        #    fail('what are these other arguments')
+        if char == 'A':
+            # If the file already exists in clearcase then it should be a modify operation.
+            if exists(args[0]):
+                print(args[0] + ' already exists, changing from Add to Modify operation')
+                char = 'M'
         type = types[char](args)
         type.id = id
         list.append(type)
@@ -82,13 +92,13 @@ def checkout(stats, comment, initial):
     for stat in stats:
         try:
             stat.stage(transaction)
-            for stat in stats:
-                stat.commit(transaction)
-            transaction.commit(comment);
         except:
-            print('rolling back transaction')
             transaction.rollback()
             raise    
+    for stat in stats:
+        print(stat)
+        stat.commit(transaction)
+    transaction.commit(comment);
 
 class ITransaction(object):
     def __init__(self, comment):
@@ -106,10 +116,12 @@ class ITransaction(object):
     def stage(self, file):
         self.co(file)
     def rollback(self):
+        print('Rolling back transation')
         for file in self.checkedout:
             cc_exec(['unco', '-rm', file])
         cc.rmactivity()
     def commit(self, comment):
+        print('Committing transaction')
         for file in self.checkedout:
             cc_exec(['ci', '-identical', '-c', comment, file])
 
