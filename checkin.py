@@ -36,7 +36,6 @@ def main(force=False, no_deliver=False, initial=False, all=False):
     for line in log.split('\x00'):
         id, comment = line.split('\x01')
         statuses = getStatuses(id, initial)
-        print("Statuses" + statuses)
         checkout(statuses, comment.strip(), initial)
         tag(CI_TAG, id)
     if not no_deliver:
@@ -76,11 +75,11 @@ def getStatuses(id, initial):
         #if args.count > 1:
         #    print(args)
         #    fail('what are these other arguments')
-        if char == 'A':
-            # If the file already exists in clearcase then it should be a modify operation.
-            if exists(args[0]):
-                print(args[0] + ' already exists, changing from Add to Modify operation')
-                char = 'M'
+        #if char == 'A':
+        #    # If the file already exists in clearcase then it should be a modify operation.
+        #    if exists(args[0]):
+        #        print(args[0] + ' already exists, changing from Add to Modify operation')
+        #        char = 'M'
         type = types[char](args)
         type.id = id
         list.append(type)
