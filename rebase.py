@@ -82,20 +82,45 @@ def printStatus():
     print('Unstaged files:\n' + files)
 
 def doCommit(cs):
+    doCommitExperimental(cs)
+
+def doCommitOrig(cs):
     branch = getCurrentBranch()
     if branch:
         git_exec(['checkout', CC_TAG])
-        try:
-            commit(cs)
+    try:
+        commit(cs, branch)
+    finally:
+        if branch:
             git_exec(['rebase', CI_TAG, CC_TAG])
             git_exec(['rebase', CC_TAG, branch])
-            tag(CI_TAG, CC_TAG)
+        else:
+            git_exec(['branch', '-f', CC_TAG])
+        tag(CI_TAG, CC_TAG)
+
+def doCommitExperimental(cs):
+    #raw_input("doCommitExperimental: Press Enter to continue...")
+    branch = getCurrentBranch()
+    if branch:
+        #git_exec(['checkout', CC_TAG])
+        #raw_input("doCommitExperimental: Press Enter to continue...")
+        try:
+            commit(cs, branch)
+            #raw_input("doCommitExperimental: Press Enter to continue...")
+            #git_exec(['rebase', CI_TAG, CC_TAG])
+            #raw_input("doCommitExperimental: Press Enter to continue...")
+            #git_exec(['rebase', CC_TAG, branch])
+            #raw_input("doCommitExperimental: Press Enter to continue...")
+
+            #if not branch:
+            #    git_exec(['branch', '-f', CC_TAG])
+            #    raw_input("doCommitExperimental: Press Enter to continue...")
+
+            #tag(CI_TAG, CC_TAG)
+            #raw_input("doCommitExperimental: Press Enter to continue...")
         except:
             #git_exec(['checkout', branch])
             raise
-    else:
-        '''git_exec(['branch', '-f', CC_TAG])'''
-        raise 
 
 def getSince():
     try:
@@ -169,9 +194,35 @@ def mergeHistory(changesets):
         group.fixComment()
     return groups
 
-def commit(list):
+def commit(list, branch):
     for cs in list:
-        cs.commit()
+        try:
+            csMsg = 'subject='+cs.subject+' date='+cs.date+' user='+cs.user
+
+            git_exec(['checkout', CC_TAG])
+
+            #raw_input('Ready for commit of changeset '+csMsg)
+            cs.commit()
+            print('commited changset '+csMsg)
+
+            if branch:
+                git_exec(['rebase', CI_TAG, CC_TAG])
+                git_exec(['rebase', CC_TAG, branch])
+
+                #Alternate (FIXME)
+                #git_exec(['rebase', CC_TAG, branch])
+                #git_exec(['rebase', CC_TAG, branch])
+
+            else:
+                git_exec(['branch', '-f', CC_TAG])
+
+            tag(CI_TAG, CC_TAG)
+
+            #raw_input('commit complete for changeset '+csMsg)
+
+        except:
+            print('failed to rebase: '+csMsg)
+            raise
 
 def printGroups(groups):
     for cs in groups:
@@ -263,12 +314,18 @@ class Changeset(object):
         while not isPristine() and retries > 0:
             printStatus()
             time.sleep(1)
-            #raw_input("Press Enter to continue...")
-            git_exec(['add', '-f', file], errors=False)
-            retries -= 1
+            try:
+                #git_exec(['add', '-f', file], errors=False)
+                git_exec(['add', '-A'], errors=False)
+            except:
+                print('failed to add '+file)
 
-        if retries == 0:
-            raise Exception('Cannot add ' + file + ' after ' + maxRetries)
+            retries -= 1
+            if retries == 0:
+                raw_input("Last retry, do you want to intervene before I fail?")
+
+        if not isPristine() and retries == 0:
+            raise Exception('Cannot add ' + file + ' after ' + str(maxRetries) + ' tries')
 
 class Uncataloged(Changeset):
     def add(self, files):
