@@ -194,34 +194,33 @@ def mergeHistory(changesets):
         group.fixComment()
     return groups
 
-def commit(list, branch):
-    for cs in list:
+# iterates through a set of changesets and commits each to git
+def commit(csList, branch):
+    for cs in csList:
         try:
-            csMsg = 'subject='+cs.subject+' date='+cs.date+' user='+cs.user
+            csInfo = cs.subject + ' (' + cs.user + '/' + cs.date + ')'
+            print('Processing changeset "' + csInfo + '" from clearcase')
 
+            print('Building up changes on ' + CC_TAG)
             git_exec(['checkout', CC_TAG])
 
-            #raw_input('Ready for commit of changeset '+csMsg)
             cs.commit()
-            print('commited changset '+csMsg)
 
             if branch:
+                print('Rebasing changes on ' + CC_TAG + ' to ' + CI_TAG)
                 git_exec(['rebase', CI_TAG, CC_TAG])
+
+                print('Rebasing changes on ' + branch + ' to ' + CC_TAG)
                 git_exec(['rebase', CC_TAG, branch])
-
-                #Alternate (FIXME)
-                #git_exec(['rebase', CC_TAG, branch])
-                #git_exec(['rebase', CC_TAG, branch])
-
             else:
                 git_exec(['branch', '-f', CC_TAG])
 
+            # move checkin tag forward to clearcase tag
+            print('Updating ' + CI_TAG + ' to ' + CC_TAG)
             tag(CI_TAG, CC_TAG)
 
-            #raw_input('commit complete for changeset '+csMsg)
-
         except:
-            print('failed to rebase: '+csMsg)
+            print('failed to rebase: ' + csInfo)
             raise
 
 def printGroups(groups):
