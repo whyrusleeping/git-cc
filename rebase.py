@@ -101,7 +101,8 @@ def doCommitOrig(cs):
 def doCommitExperimental(cs):
     #raw_input("doCommitExperimental: Press Enter to continue...")
     branch = getCurrentBranch()
-    if branch:
+
+    if branch or True:
         #git_exec(['checkout', CC_TAG])
         #raw_input("doCommitExperimental: Press Enter to continue...")
         try:
@@ -196,16 +197,20 @@ def mergeHistory(changesets):
 
 # iterates through a set of changesets and commits each to git
 def commit(csList, branch):
+    print("Starting Commit")
     for cs in csList:
-        try:
-            csInfo = cs.subject + ' (' + cs.user + '/' + cs.date + ')'
-            print('Processing changeset "' + csInfo + '" from clearcase')
+        csInfo = cs.subject + ' (' + cs.user + '/' + cs.date + ')'
+        print('Processing changeset "' + csInfo + '" from clearcase')
 
-            print('Building up changes on ' + CC_TAG)
+        print('Building up changes on ' + CC_TAG)
+        if branch:
             git_exec(['checkout', CC_TAG])
 
+        try:
+            print("Now Committing")
             cs.commit()
-
+        finally:
+            print("In Finally Statement")
             if branch:
                 print('Rebasing changes on ' + CC_TAG + ' to ' + CI_TAG)
                 git_exec(['rebase', CI_TAG, CC_TAG])
@@ -219,9 +224,9 @@ def commit(csList, branch):
             print('Updating ' + CI_TAG + ' to ' + CC_TAG)
             tag(CI_TAG, CC_TAG)
 
-        except:
-            print('failed to rebase: ' + csInfo)
-            raise
+#        except:
+#            print('failed to rebase: ' + csInfo)
+#            raise
 
 def printGroups(groups):
     for cs in groups:
