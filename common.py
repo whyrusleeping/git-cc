@@ -140,7 +140,11 @@ def removeFile(file):
 
 def validateCC():
     if not CC_DIR:
-        fail("No 'clearcase' variable found for branch '%s'" % CURRENT_BRANCH)
+        fail("No 'clearcase' variable found for branch '%s'." % CURRENT_BRANCH)
+    if not os.path.isdir(CC_DIR):
+        fail("Clearcase view path '%s' is invalid. Is the view started?" % CC_DIR)
+    if not os.path.exists(CC_DIR):
+        fail("Cannot find the ClearCase view at '%s'." % CC_DIR)
         
 def path(path, args='-m'):
     if IS_CYGWIN:
