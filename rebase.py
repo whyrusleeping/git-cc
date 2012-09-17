@@ -293,7 +293,7 @@ class Group:
         comment = self.comment if self.comment.strip() != "" else "<empty message>"
         try:
             if isPristine():
-                git_exec(['commit', '-m', comment.encode(ENCODING)], env=env)
+                git_exec(['commit', '-m', comment], env=env)
             else:
                 raise Exception('There are uncommitted files, something went wrong.')
         except Exception as e:
