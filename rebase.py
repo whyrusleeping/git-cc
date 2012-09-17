@@ -202,21 +202,33 @@ def commit(csList, branch):
         csInfo = cs.subject + ' (' + cs.user + '/' + cs.date + ')'
         print('Processing changeset "' + csInfo + '" from clearcase')
 
+        print('Creating a save point tag in case something bad happens')
+        tag(REBASE_BACKUP_TAG, CC_TAG)
+
         print('Building up changes on ' + CC_TAG)
         if branch:
             git_exec(['checkout', CC_TAG])
 
         try:
             print("Now Committing")
-            cs.commit()
-        finally:
-            print("In Finally Statement")
-            if branch:
-                print('Rebasing changes on ' + CC_TAG + ' to ' + CI_TAG)
-                git_exec(['rebase', CI_TAG, CC_TAG])
+            try:
+                cs.commit()
+                print("Commit Complete")
+            except Exception as e:
+                logException(e)
+                raise
 
-                print('Rebasing changes on ' + branch + ' to ' + CC_TAG)
-                git_exec(['rebase', CC_TAG, branch])
+            if branch:
+                try:
+                    print('Rebasing changes on ' + CC_TAG + ' to ' + CI_TAG)
+                    git_exec(['rebase', CI_TAG, CC_TAG])
+
+                    print('Rebasing changes on ' + branch + ' to ' + CC_TAG)
+                    git_exec(['rebase', CC_TAG, branch])
+                except Exception as e:
+                    print('\nAn EXCEPTION occured:\n{0}\n'.format(e))
+                    git_exec(['checkout', branch])
+                    raise
             else:
                 git_exec(['branch', '-f', CC_TAG])
 
@@ -224,9 +236,17 @@ def commit(csList, branch):
             print('Updating ' + CI_TAG + ' to ' + CC_TAG)
             tag(CI_TAG, CC_TAG)
 
-#        except:
-#            print('failed to rebase: ' + csInfo)
-#            raise
+        except:
+            print('failed to rebase: ' + csInfo)
+            print('Resetting back to save point tag')
+            reset(REBASE_BACKUP_TAG)
+            rmtag(REBASE_BACKUP_TAG)
+            if branch:
+                git_exec(['checkout', branch])
+            raise
+
+def logException(e):
+    print('\nAn EXCEPTION occured:\n{0}\n'.format(e))
 
 def printGroups(groups):
     for cs in groups:

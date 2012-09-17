@@ -65,6 +65,9 @@ def popen(exe, cmd, cwd, env=None, decode=True, errors=True):
 def tag(tag, id="HEAD"):
     git_exec(['tag', '-f', tag, id])
 
+def rmtag(tag):
+    git_exec(['tag', '-d', tag])
+
 def reset(tag=None):
     git_exec(['reset', '--hard', tag or CC_TAG])
 
@@ -162,4 +165,5 @@ CC_DIR = path(cfg.get(CFG_CC))
 DEBUG = cfg.getCore('debug', True)
 CC_TAG = CURRENT_BRANCH + '_cc'
 CI_TAG = CURRENT_BRANCH + '_ci'
+REBASE_BACKUP_TAG = CURRENT_BRANCH + '_backup'
 
