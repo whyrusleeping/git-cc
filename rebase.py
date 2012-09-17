@@ -210,7 +210,7 @@ def commit(csList, branch):
             git_exec(['checkout', CC_TAG])
 
         try:
-            print("Now Committing")
+            print("Committing")
             try:
                 cs.commit()
                 print("Commit Complete")
