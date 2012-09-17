@@ -35,11 +35,11 @@ def main(stash=False, dry_run=False, lshistory=False, load=None):
     since = getSince()
     cache.start()
     if load:
-        history = open(load, 'r').read().decode(ENCODING)
+        history = open(load, 'r').read()
     else:
         cc.rebase()
         history = getHistory(since)
-        write(join(GIT_DIR, '.git', 'lshistory.bak'), history.encode(ENCODING))
+        write(join(GIT_DIR, '.git', 'lshistory.bak'), history)
     if lshistory:
         print(history)
     else:
