@@ -47,7 +47,7 @@ def git_exec(cmd, **args):
     return popen('git', cmd, GIT_DIR, **args)
 
 def cc_exec(cmd, **args):
-    return popen('cleartool', cmd, CC_DIR, **args)
+    return popen('cleartool', cmd, CC_DIR, None, False, **args)
 
 def popen(exe, cmd, cwd, env=None, decode=True, errors=True):
     cmd.insert(0, exe)
