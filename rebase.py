@@ -204,8 +204,8 @@ def commit(csList, branch):
                     print('Rebasing changes on ' + branch + ' to ' + CC_TAG)
                     git_exec(['rebase', CC_TAG, branch])
                 except Exception as e:
-                    print('\nAn EXCEPTION occured:\n{0}\n'.format(e))
-                    git_exec(['checkout', branch])
+                    logException(e)
+                    #git_exec(['checkout', branch])
                     raise
             else:
                 git_exec(['branch', '-f', CC_TAG])
