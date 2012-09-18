@@ -99,29 +99,7 @@ def doCommitOrig(cs):
         tag(CI_TAG, CC_TAG)
 
 def doCommitExperimental(cs):
-    #raw_input("doCommitExperimental: Press Enter to continue...")
-    branch = getCurrentBranch()
-
-    if branch or True:
-        #git_exec(['checkout', CC_TAG])
-        #raw_input("doCommitExperimental: Press Enter to continue...")
-        try:
-            commit(cs, branch)
-            #raw_input("doCommitExperimental: Press Enter to continue...")
-            #git_exec(['rebase', CI_TAG, CC_TAG])
-            #raw_input("doCommitExperimental: Press Enter to continue...")
-            #git_exec(['rebase', CC_TAG, branch])
-            #raw_input("doCommitExperimental: Press Enter to continue...")
-
-            #if not branch:
-            #    git_exec(['branch', '-f', CC_TAG])
-            #    raw_input("doCommitExperimental: Press Enter to continue...")
-
-            #tag(CI_TAG, CC_TAG)
-            #raw_input("doCommitExperimental: Press Enter to continue...")
-        except:
-            #git_exec(['checkout', branch])
-            raise
+    commit(cs, getCurrentBranch())
 
 def getSince():
     try:
