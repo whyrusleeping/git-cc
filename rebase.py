@@ -213,6 +213,7 @@ def commit(csList, branch):
             # move checkin tag forward to clearcase tag
             print('Updating ' + CI_TAG + ' to ' + CC_TAG)
             tag(CI_TAG, CC_TAG)
+            rmtag(REBASE_BACKUP_TAG)
 
         except:
             print('failed to rebase: ' + csInfo)
