@@ -161,7 +161,7 @@ if not exists(join(GIT_DIR, '.git')):
 CURRENT_BRANCH = getCurrentBranch() or 'master'
 cfg = GitConfigParser(CURRENT_BRANCH)
 cfg.read()
-CC_DIR = path(cfg.get(CFG_CC))
+CC_DIR = path(cfg.get(CFG_CC).replace("\\", "/"))
 DEBUG = cfg.getCore('debug', True)
 CC_TAG = CURRENT_BRANCH + '_cc'
 CI_TAG = CURRENT_BRANCH + '_ci'
