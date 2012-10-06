@@ -122,10 +122,24 @@ class Transaction(ITransaction):
         self.base = git_exec(['merge-base', CI_TAG, 'HEAD']).strip()
     def stage(self, file):
         super(Transaction, self).stage(file)
-        ccid = git_exec(['hash-object', join(CC_DIR, file).replace("\\", "/")])[0:-1]
+        ccFilename = join(CC_DIR, file).replace("\\", "/")
+        gitFilename = file
+        ccid = git_exec(['hash-object', ccFilename])[0:-1]
         gitid = getBlob(self.base, file)        
-        if ccid != gitid:
+        if ccid != gitid:            
             if not IGNORE_CONFLICTS:
-                raise Exception('File has been modified: %s. Try rebasing.' % file)
+                if not areFilesEqualExceptForEOLs(ccFilename, gitFilename):
+                    raise Exception('File has been modified: %s. Try rebasing.' % file)
+                else:
+                    print ('WARNING: Files differ only by EOLs',file,'...continuing...')
             else:
                 print ('WARNING: Detected possible conflict with',file,'...ignoring...')
+
+def areFilesEqualExceptForEOLs(fileA, fileB):
+    fileAContents = open(fileA, "rb").read()
+    fileAContents = fileAContents.replace("\r\n", "\n")
+
+    fileBContents = open(fileB, "rb").read()
+    fileBContents = fileAContents.replace("\r\n", "\n")
+
+    return fileAContents == fileBContents
