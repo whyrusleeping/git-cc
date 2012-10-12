@@ -44,7 +44,8 @@ def main(stash=False, dry_run=False, lshistory=False, load=None):
         print(history)
     else:
         cs = parseHistory(history)
-        cs.sort(cmp= changeSetComp)
+        #cs.sort(cmp= changeSetComp)
+        cs = reversed(cs)
         cs = mergeHistory(cs)
         if dry_run:
             return printGroups(cs)
