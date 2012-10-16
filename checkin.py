@@ -104,10 +104,13 @@ class ITransaction(object):
     def add(self, file):
         self.checkedout.append(file)
     def co(self, file):
-        cc_exec(['co', '-reserved', '-nc', file])
-        if CC_LABEL:
-            cc_exec(['mklabel', '-replace', '-nc', CC_LABEL, file])
-        self.add(file)
+        if changesDetected(self, file):
+            cc_exec(['co', '-reserved', '-nc', file])
+            if CC_LABEL:
+                cc_exec(['mklabel', '-replace', '-nc', CC_LABEL, file])
+            self.add(file)
+        else:
+            print('INFO: Files are already identical, skipping', file)
     def stageDir(self, file):
         file = file if file else '.'
         if file not in self.checkedout:
@@ -122,7 +125,8 @@ class ITransaction(object):
     def commit(self, comment):
         print('Committing transaction')
         for file in self.checkedout:
-            cc_exec(['ci', '-identical', '-c', comment, file])
+            #cc_exec(['ci', '-identical', '-c', comment, file])
+            cc_exec(['ci', '-c', comment, file])
 
 class Transaction(ITransaction):
     def __init__(self, comment):
@@ -142,6 +146,13 @@ class Transaction(ITransaction):
                     print ('WARNING: Files differ only by EOLs',file,'...continuing...')
             else:
                 print ('WARNING: Detected possible conflict with',file,'...ignoring...')
+
+def changesDetected(transaction, file):
+    ccFilename = join(CC_DIR, file).replace("\\", "/")
+    gitFilename = file
+    ccid = git_exec(['hash-object', ccFilename])[0:-1]
+    gitid = getBlob(transaction.base, file)        
+    return ccid == gitid
 
 def areFilesEqualExceptForEOLs(fileA, fileB):
     fileAContents = open(fileA, "rb").read()
