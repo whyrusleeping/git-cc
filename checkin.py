@@ -41,7 +41,7 @@ def main(force=False, no_deliver=False, initial=False, all=False, cclabel=''):
     for line in log.split('\x00'):
         id, comment = line.split('\x01')
         statuses = getStatuses(id, initial)
-        checkout(statuses, comment.strip(), initial)
+        checkout(id, statuses, comment.strip(), initial)
         tag(CI_TAG, id)
     if not no_deliver:
         cc.commit()
@@ -82,9 +82,10 @@ def getStatuses(id, initial):
         list.append(type)
     return list
 
-def checkout(stats, comment, initial):
+def checkout(id, stats, comment, initial):
+    print('comment=', comment)
     """Poor mans two-phase commit"""
-    transaction = ITransaction(comment) if initial else Transaction(comment)
+    transaction = ITransaction(id, comment) if initial else Transaction(id, comment)
     for stat in stats:
         try:
             stat.stage(transaction)
@@ -94,23 +95,21 @@ def checkout(stats, comment, initial):
     for stat in stats:
         print(stat)
         stat.commit(transaction)
-    transaction.commit(comment);
+    transaction.commit(comment)
 
 class ITransaction(object):
-    def __init__(self, comment):
+    def __init__(self, id, comment):
         self.checkedout = []
+        self.id = id
         self.cc_label = CC_LABEL
         cc.mkact(comment)
     def add(self, file):
         self.checkedout.append(file)
     def co(self, file):
-        if changesDetected(self, file):
-            cc_exec(['co', '-reserved', '-nc', file])
-            if CC_LABEL:
-                cc_exec(['mklabel', '-replace', '-nc', CC_LABEL, file])
-            self.add(file)
-        else:
-            print('INFO: Files are already identical, skipping', file)
+        cc_exec(['co', '-reserved', '-nc', file])
+        if CC_LABEL:
+            cc_exec(['mklabel', '-replace', '-nc', CC_LABEL, file])
+        self.add(file)
     def stageDir(self, file):
         file = file if file else '.'
         if file not in self.checkedout:
@@ -126,11 +125,15 @@ class ITransaction(object):
         print('Committing transaction')
         for file in self.checkedout:
             #cc_exec(['ci', '-identical', '-c', comment, file])
-            cc_exec(['ci', '-c', comment, file])
+            # try and check it in, if they are identical then skip
+            try:
+                cc_exec(['ci', '-c', comment, file])
+            except:
+                cc_exec(['unco', '-rm', file])
 
 class Transaction(ITransaction):
-    def __init__(self, comment):
-        super(Transaction, self).__init__(comment)
+    def __init__(self, id, comment):
+        super(Transaction, self).__init__(id, comment)        
         self.base = git_exec(['merge-base', CI_TAG, 'HEAD']).strip()
     def stage(self, file):
         super(Transaction, self).stage(file)
@@ -148,11 +151,25 @@ class Transaction(ITransaction):
                 print ('WARNING: Detected possible conflict with',file,'...ignoring...')
 
 def changesDetected(transaction, file):
+    print
+    print
+    print('In changesDetected for file/dir', file)
     ccFilename = join(CC_DIR, file).replace("\\", "/")
-    gitFilename = file
-    ccid = git_exec(['hash-object', ccFilename])[0:-1]
-    gitid = getBlob(transaction.base, file)        
-    return ccid == gitid
+    if not os.path.isdir(ccFilename):
+        print('It''s a file')        
+        gitFilename = file
+        ccid = git_exec(['hash-object', ccFilename])[0:-1]
+        print('git commit. transaction.id=', transaction.id, 'transaction.base=', transaction.base)
+        gitid = getBlob(transaction.id, file)        
+        print('ccid=', ccid, 'gitid=', gitid)
+        if ccid != gitid:
+            print('Changes detected')
+        print
+        return ccid != gitid
+    else:
+        print('It''s a directory')
+        print
+        return True
 
 def areFilesEqualExceptForEOLs(fileA, fileB):
     fileAContents = open(fileA, "rb").read()
