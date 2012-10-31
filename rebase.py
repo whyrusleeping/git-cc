@@ -181,11 +181,13 @@ def commit(csList, branch):
         csInfo = cs.subject + ' (' + cs.user + '/' + cs.date + ')'
         print('Processing changeset "' + csInfo + '" from clearcase')
 
-        print('Creating a save point tag in case something bad happens')
-        tag(REBASE_BACKUP_TAG, CC_TAG)
+
+
 
         print('Building up changes on ' + CC_TAG)
         if branch:
+            print('Creating a save point tag in case something bad happens')
+            tag(REBASE_BACKUP_TAG, CC_TAG)
             git_exec(['checkout', CC_TAG])
 
         try:
@@ -206,7 +208,6 @@ def commit(csList, branch):
                     git_exec(['rebase', CC_TAG, branch])
                 except Exception as e:
                     logException(e)
-                    #git_exec(['checkout', branch])
                     raise
             else:
                 git_exec(['branch', '-f', CC_TAG])
@@ -214,13 +215,27 @@ def commit(csList, branch):
             # move checkin tag forward to clearcase tag
             print('Updating ' + CI_TAG + ' to ' + CC_TAG)
             tag(CI_TAG, CC_TAG)
-            rmtag(REBASE_BACKUP_TAG)
+            
+            #blindly eat this exception because:
+            #when this tag doesnt exist, its because we are creating a new repository
+            #and if anything fails during that, theres nothing to revert to, so we
+            #arent worried about not having that tag
+            try:
+                rmtag(REBASE_BACKUP_TAG)
+            except:
+                pass
 
         except:
             print('failed to rebase: ' + csInfo)
             print('Resetting back to save point tag')
-            reset(REBASE_BACKUP_TAG)
-            rmtag(REBASE_BACKUP_TAG)
+
+            #see above
+            try:
+                reset(REBASE_BACKUP_TAG)
+                rmtag(REBASE_BACKUP_TAG)
+            except:
+                pass
+
             if branch:
                 git_exec(['checkout', branch])
             raise
