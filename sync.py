@@ -23,11 +23,21 @@ def main(cache=False):
                 continue
             for file in filenames:
                 if fnmatch(file, glob):
-                    copy(join(reldir, file))
+                    #python's join function creates an 'absolute path'
+                    #this is fine until you use the result of join in another
+                    #call to join, when given an absolute path it disregards
+                    #ALL other things its trying to join. Python sucks.
+                    relFileName = join(reldir, file)
+                    if relFileName[0] == '\\' or relFileName[0] == '/':
+                        relFileName = relFileName[1:]
+                    copy(relFileName)
 
 def copy(file):
+    print(GIT_DIR)
+    print(CC_DIR)
     newFile = join(GIT_DIR, file)
-    debug('Copying %s' % newFile)
+    debug('Source: %s' % file)
+    debug('Copying to %s' % newFile)
     mkdirs(newFile)
     shutil.copy(join(CC_DIR, file), newFile)
     os.chmod(newFile, stat.S_IREAD | stat.S_IWRITE)
