@@ -1,3 +1,7 @@
 users.py
 *.pyc
 *.bak
+*.dotCover
+*.ReSharper.user
+*.orig
+*.suo
