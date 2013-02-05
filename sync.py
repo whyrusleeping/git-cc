@@ -33,8 +33,6 @@ def main(cache=False):
                     copy(relFileName)
 
 def copy(file):
-    print(GIT_DIR)
-    print(CC_DIR)
     newFile = join(GIT_DIR, file)
     debug('Source: %s' % file)
     debug('Copying to %s' % newFile)
