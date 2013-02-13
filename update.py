@@ -7,5 +7,5 @@ def main(message):
     cc_exec(['update', '.'], errors=False)
     sync.main()
     git_exec(['add', '-f', '.'])
-    git_exec(['commit', '-m', message])
+    git_exec(['commit','--allow-empty', '-m', message])
     reset.main('HEAD')
