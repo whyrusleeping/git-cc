@@ -23,7 +23,7 @@ def main(cache=False):
                 continue
             for file in filenames:
                 if fnmatch(file, glob):
-                    relFileName = join(reldir, file)
+                    relFileName = join(reldir, abspath(file))
                     copy(relFileName.strip('/\\'))
 
 def copy(file):
