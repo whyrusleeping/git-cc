@@ -54,7 +54,16 @@ class Delete(Status):
         t.stageDir(dirname(self.file))
     def commit(self, t):
         # TODO Empty dirs?!?
-        cc_exec(['rm', self.file])
+
+        # if it doen't exist then silently ignore
+        path = join(CC_DIR, self.file)
+        print('Trying to delete ' + path)
+        if exists(path) and os.path.filename(path) in os.listdir(os.path.dirname(path)):
+            try:
+                cc_exec(['rm', self.file])
+            except:
+                # FIXME: This seems to happen when there are casing problems
+                print('WARNING: Could not find ' + join(CC_DIR, self.file))
 
 class Rename(Status):
     def __init__(self, files):
