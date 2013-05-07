@@ -23,10 +23,11 @@ def main(cache=False):
                 continue
             for file in filenames:
                 if fnmatch(file, glob):
-                    relFileName = join(reldir, abspath(file))
+                    relFileName = join(reldir, file)
                     copy(relFileName.strip('/\\'))
 
 def copy(file):
+    debug('GitDir = %s' % GIT_DIR)
     newFile = join(GIT_DIR, file)
     debug('Source: %s' % file)
     debug('Copying to %s' % newFile)
