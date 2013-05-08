@@ -64,7 +64,20 @@ def getStatuses(id, initial):
     while len(split) > 1:
         char = split.pop(0)[0] # first char
         args = [split.pop(0)]
-        # check if file is really a symlink
+
+        # We dont handle ClearCase SymLinks very well right now
+        symcheck = ['ls', '-long', args[0]]
+        try:
+            ret = cc_exec(symcheck, errors=True)
+            cctype = ret.split(' ')[0]
+            if cctype == 'symbolic':
+                print('Ignoring ClearCase SymLink ')
+                continue    
+        except:
+            pass        
+        
+        
+        # check if file is really a symlink  (git side)
         cmd = ['ls-tree', '-z', id, '--', args[0]]
         if git_exec(cmd).split(' ')[0] == '120000':
             char = 'S'
@@ -75,7 +88,7 @@ def getStatuses(id, initial):
             args = [split.pop(0)]
         if args[0] == cache.FILE:
             continue
-        print('char=' + char + 'filename=' + args[0])
+        print('char=' + char + ' filename=' + args[0])
         print(args)
         type = types[char](args)
         type.id = id
