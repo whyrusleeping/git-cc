@@ -71,7 +71,9 @@ def getStatuses(id, initial):
             ret = cc_exec(symcheck, errors=True)
             cctype = ret.split(' ')[0]
             if cctype == 'symbolic':
-                print('Ignoring ClearCase SymLink ')
+                # ignore, because if two or more files are pointing to the symlink
+                # and they are both changed, then we might lose some changes
+                print('Ignoring ClearCase SymLink')
                 continue    
         except:
             pass        
