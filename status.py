@@ -58,7 +58,7 @@ class Delete(Status):
         # if it doen't exist then silently ignore
         path = join(CC_DIR, self.file)
         print('Trying to delete ' + path)
-        if exists(path) and os.path.filename(path) in os.listdir(os.path.dirname(path)):
+        if exists(path) and os.path.basename(path) in os.listdir(os.path.dirname(path)):
             try:
                 cc_exec(['rm', self.file])
             except:
